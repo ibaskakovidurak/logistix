@@ -31,7 +31,8 @@ const setInterceptors = (): AxiosInterceptorManager<any> => {
         },
         (error: any) => {
             return {
-                data: error.response,
+                detail: error.response.data.detail,
+                message: error.message,
                 status: error.response.status
             }
         })
@@ -67,9 +68,12 @@ const createRequest = (service: any | object): object => {
         const response = await axiosInstance[service.method](getUrlFromRouteProps(service.route, properties), body, headers)
 
         return {
-            data: response.data,
+            data: response.data || {
+                detail: response.detail,
+                message: response.message
+            },
             status: response.status
-            // Here could be added additional info
+
         }
     }
 }
