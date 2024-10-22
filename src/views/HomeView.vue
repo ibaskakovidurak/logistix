@@ -83,7 +83,7 @@
                         color="primary"
                         class="ml-2 mb-2"
                         variant="text"
-                        @click.stop.prevent="filterOrders(column, true)"
+                        @click.stop.prevent="clearFilter(column)"
                       />
                     </v-list>
                   </v-menu>
@@ -206,27 +206,34 @@ const getOrders = async (): Promise<void> => {
 
 
 /**
+ * Clear Filter
+ * @param column
+ * @return void
+ */
+const clearFilter = (column: any): void => {
+  orders.value = ordersDefault.value
+  filter.value[column.key] = ''
+}
+
+
+/**
  * Filter Orders
  *
  * @function
  * @param column
- * @param clear
  */
-const filterOrders = (column: any, clear: boolean = false): void => {
+const filterOrders = (column: any): void => {
   const inputValue = filter.value[column.key]
 
-  if (clear) {
+  if (inputValue) {
+    orders.value = ordersDefault.value.filter((order: any) => {
+      const field = order[column.key].toString().toLowerCase()
+      return field.includes(inputValue.toString().toLowerCase())
+    })
+  } else {
     orders.value = ordersDefault.value
-    filter.value[column.key] = ''
-    return
   }
 
-  inputValue
-    ? orders.value = ordersDefault.value.filter((order: any) => {
-        const field = order[column.key].toString().toLowerCase()
-        return field.includes(inputValue.toString().toLowerCase())
-      })
-    : orders.value = ordersDefault.value
 }
 
 
@@ -278,37 +285,6 @@ const initialize = async (load: {fields: boolean} = { fields: true }): Promise<v
   if (load.fields) await getFields()
 
   loading.value = false
-}
-
-
-
-/**
- * Delete Order
- *
- * @function
- * @async
- * @return Promise<void>
- */
-const deleteOrder = async (): Promise<void>  => {
-  loading.value = true
-
-  const orderDelete = order.value[0]
-  const request = await apiServices.deleteOrder({id: orderDelete.order_id})
-
-  notification.value = true
-
-  if (request.status !== 200) {
-    await createNotification(request.data)
-    return
-  }
-
-  await createNotification({
-    type: request.status,
-    message: 'Заказ был успешно удален!'
-  })
-
-
-  modalDelete.value = false
 }
 
 
